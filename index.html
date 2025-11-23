@@ -99,10 +99,10 @@
 
         /* --- Home --- */
         #home {
-            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1920');
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1920');
             background-size: cover;
             background-position: center;
-            display: flex !important; /* Overrides general rule for initial load */
+            display: flex !important;
             align-items: center;
             justify-content: center;
             text-align: center;
@@ -112,6 +112,7 @@
         .hero-content h1 {
             font-size: 3.5rem;
             margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
 
         .btn {
@@ -162,6 +163,8 @@
             overflow: hidden;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             transition: transform 0.3s;
+            display: flex;
+            flex-direction: column;
         }
 
         .card:hover {
@@ -169,14 +172,18 @@
         }
 
         .card-img {
-            height: 200px;
+            height: 220px;
             width: 100%;
-            background-color: #ddd;
+            background-color: #f0f0f0;
             object-fit: cover;
         }
 
         .card-body {
             padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .card h3 {
@@ -395,7 +402,7 @@
     <section id="about">
         <div class="about-content">
             <div>
-                <img src="https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=600" alt="Team" style="width: 100%; border-radius: 10px;">
+                <img src="https://images.unsplash.com/photo-1556740738-b6a63e27c4df?auto=format&fit=crop&w=800" alt="Team" style="width: 100%; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
             </div>
             <div>
                 <h2>Our Story</h2>
@@ -432,33 +439,87 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // --- Data ---
+        // --- UPDATED MENU DATA WITH REAL IMAGES ---
         const products = [
-            { id: 1, name: "Barako Espresso", type: "coffee", price: 120, img: "https://images.unsplash.com/photo-1510707577719-ae7c14805e3a?auto=format&fit=crop&w=400", desc: "Strong, bold local beans." },
-            { id: 2, name: "Spanish Latte", type: "coffee", price: 160, img: "https://images.unsplash.com/photo-1570968992193-d6ea0827f91d?auto=format&fit=crop&w=400", desc: "Sweet and creamy." },
-            { id: 3, name: "Caramel Macchiato", type: "coffee", price: 180, img: "https://images.unsplash.com/photo-1485808191679-5f8c7c835154?auto=format&fit=crop&w=400", desc: "Espresso with vanilla and caramel." },
-            { id: 4, name: "Matcha Latte", type: "non-coffee", price: 170, img: "https://images.unsplash.com/photo-1515823064-d6e0c91d70d7?auto=format&fit=crop&w=400", desc: "Premium Japanese green tea." },
-            { id: 5, name: "Strawberry Fizz", type: "non-coffee", price: 150, img: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=400", desc: "Refreshing soda with real fruit." },
-            { id: 6, name: "Croissant", type: "non-coffee", price: 95, img: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=400", desc: "Buttery and flaky pastry." }
+            { 
+                id: 1, 
+                name: "Barako Espresso", 
+                type: "coffee", 
+                price: 120, 
+                img: "https://images.unsplash.com/photo-1510707577719-ae7c14805e3a?auto=format&fit=crop&w=600&q=80", 
+                desc: "Strong, bold local beans served black." 
+            },
+            { 
+                id: 2, 
+                name: "Spanish Latte", 
+                type: "coffee", 
+                price: 160, 
+                img: "https://images.unsplash.com/photo-1585373683920-671438c82b32?auto=format&fit=crop&w=600&q=80", 
+                desc: "Sweet and creamy with condensed milk." 
+            },
+            { 
+                id: 3, 
+                name: "Caramel Macchiato", 
+                type: "coffee", 
+                price: 180, 
+                img: "https://images.unsplash.com/photo-1485808191679-5f8c7c835154?auto=format&fit=crop&w=600&q=80", 
+                desc: "Espresso with vanilla and caramel drizzle." 
+            },
+            { 
+                id: 4, 
+                name: "Iced Americano", 
+                type: "coffee", 
+                price: 130, 
+                img: "https://images.unsplash.com/photo-1517701604599-bb29b5dd7359?auto=format&fit=crop&w=600&q=80", 
+                desc: "Chilled espresso over ice." 
+            },
+            { 
+                id: 5, 
+                name: "Matcha Latte", 
+                type: "non-coffee", 
+                price: 170, 
+                img: "https://images.unsplash.com/photo-1515823064-d6e0c91d70d7?auto=format&fit=crop&w=600&q=80", 
+                desc: "Premium Japanese green tea with milk." 
+            },
+            { 
+                id: 6, 
+                name: "Strawberry Fizz", 
+                type: "non-coffee", 
+                price: 150, 
+                img: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80", 
+                desc: "Refreshing soda with real fruit." 
+            },
+            { 
+                id: 7, 
+                name: "Classic Croissant", 
+                type: "non-coffee", 
+                price: 95, 
+                img: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=600&q=80", 
+                desc: "Buttery and flaky golden pastry." 
+            },
+            { 
+                id: 8, 
+                name: "Blueberry Cheesecake", 
+                type: "non-coffee", 
+                price: 195, 
+                img: "https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&w=600&q=80", 
+                desc: "Rich cheese filling with berry topping." 
+            }
         ];
 
         let cart = [];
 
         // --- Navigation Logic ---
         function showSection(sectionId) {
-            // Hide all sections
             document.querySelectorAll('section').forEach(sec => {
                 sec.classList.remove('active-section');
-                // Fix layout issue where sections retain 'display: none'
                 sec.style.display = 'none';
             });
 
-            // Show target
             const target = document.getElementById(sectionId);
             target.style.display = (sectionId === 'home') ? 'flex' : 'block';
             setTimeout(() => target.classList.add('active-section'), 10);
             
-            // Map resizing fix when tab is opened
             if(sectionId === 'location') {
                 setTimeout(() => { map.invalidateSize(); }, 200);
             }
@@ -477,20 +538,23 @@
                 card.innerHTML = `
                     <img src="${item.img}" class="card-img" alt="${item.name}">
                     <div class="card-body">
-                        <h3>${item.name}</h3>
-                        <p class="ar-notice"><i class="fas fa-ban"></i> AR View Unavailable</p>
-                        <p>${item.desc}</p>
-                        <div class="price">₱${item.price}</div>
-                        <div style="display:flex; gap:10px;">
-                            <button onclick="addToTray(${item.id})" class="btn" style="flex:1;">Add to Tray</button>
-                            <button class="btn" style="background:#ccc; cursor:not-allowed;" disabled>AR View</button>
+                        <div>
+                            <h3>${item.name}</h3>
+                            <p class="ar-notice"><i class="fas fa-ban"></i> AR View Unavailable</p>
+                            <p>${item.desc}</p>
+                        </div>
+                        <div>
+                            <div class="price">₱${item.price}</div>
+                            <div style="display:flex; gap:10px;">
+                                <button onclick="addToTray(${item.id})" class="btn" style="flex:1;">Add to Tray</button>
+                                <button class="btn" style="background:#ccc; cursor:not-allowed;" disabled>AR View</button>
+                            </div>
                         </div>
                     </div>
                 `;
                 grid.appendChild(card);
             });
 
-            // Update filter buttons
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.classList.remove('active');
                 if(btn.textContent.toLowerCase() === filter || (filter === 'non-coffee' && btn.textContent === 'Non-Coffee')) {
@@ -563,10 +627,7 @@
         document.getElementById('address-form').addEventListener('submit', function(e) {
             e.preventDefault();
             const address = document.getElementById('user-address').value;
-            
-            // Save to local storage (simulation)
             localStorage.setItem('userAddress', address);
-            
             displayAddress(address);
             alert('Address saved locally!');
         });
@@ -578,7 +639,6 @@
         }
 
         // --- Map Logic (Leaflet) ---
-        // Default: Manila coordinates
         const map = L.map('map-container').setView([14.5995, 120.9842], 13);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -592,8 +652,6 @@
         // --- Initialization ---
         window.onload = function() {
             renderMenu();
-            
-            // Check for saved address
             const savedAddr = localStorage.getItem('userAddress');
             if(savedAddr) {
                 displayAddress(savedAddr);
@@ -601,7 +659,6 @@
             }
         };
 
-        // Close modal if clicked outside
         window.onclick = function(event) {
             if (event.target == document.getElementById('tray-modal')) {
                 closeTray();
