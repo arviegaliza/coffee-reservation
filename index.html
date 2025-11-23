@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barako Haven | Coffee & Reservations</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        :root {
+            --primary: #4b3621; /* Dark Coffee */
+            --secondary: #a47e5b; /* Latte */
+            --accent: #d2b48c; /* Tan */
+            --light: #f4f1ea; /* Cream */
+            --white: #ffffff;
+            --text: #333333;
+            --danger: #e74c3c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--light);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* --- Navigation --- */
+        nav {
+            background: var(--primary);
+            color: var(--white);
+            padding: 1rem 5%;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .nav-links a {
+            color: var(--white);
+            text-decoration: none;
+            margin-left: 20px;
+            font-weight: 500;
+            transition: color 0.3s;
+            cursor: pointer;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--accent);
+        }
+
+        .cart-icon {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -10px;
+            background: var(--danger);
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+        }
+
+        /* --- Sections --- */
+        section {
+            padding: 4rem 5%;
+            min-height: 80vh;
+            display: none; /* Hidden by default, toggled via JS */
+        }
+
+        section.active-section {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* --- Home --- */
+        #home {
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1920');
+            background-size: cover;
+            background-position: center;
+            display: flex !important; /* Overrides general rule for initial load */
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+        }
+
+        .hero-content h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: var(--primary);
+        }
+
+        /* --- Menu --- */
+        .filter-container {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .filter-btn {
+            padding: 8px 20px;
+            margin: 0 5px;
+            background: transparent;
+            border: 2px solid var(--secondary);
+            color: var(--primary);
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        .filter-btn.active {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-img {
+            height: 200px;
+            width: 100%;
+            background-color: #ddd;
+            object-fit: cover;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .card h3 {
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .price {
+            color: var(--secondary);
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin: 10px 0;
+        }
+
+        .ar-notice {
+            font-size: 0.8rem;
+            color: #999;
+            background: #eee;
+            padding: 5px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        /* --- Reservation Form --- */
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        /* --- Location & Map --- */
+        #map-container {
+            height: 400px;
+            width: 100%;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            z-index: 1;
+        }
+
+        .saved-address-card {
+            background: white;
+            padding: 1rem;
+            border-left: 5px solid var(--secondary);
+            margin-top: 1rem;
+            display: none; /* Hidden until set */
+        }
+
+        /* --- About --- */
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        /* --- Tray/Cart Modal --- */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .tray-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .checkout-disabled {
+            color: var(--danger);
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            text-align: center;
+            border: 1px dashed var(--danger);
+            padding: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .about-content { grid-template-columns: 1fr; }
+            .hero-content h1 { font-size: 2.5rem; }
+            .nav-links { display: none; } /* Simplified mobile view */
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo"><i class="fas fa-coffee"></i> BARAKO HAVEN</div>
+        <div class="nav-links">
+            <a onclick="showSection('home')" class="active">Home</a>
+            <a onclick="showSection('menu')">Menu</a>
+            <a onclick="showSection('reservation')">Reservation</a>
+            <a onclick="showSection('location')">Location</a>
+            <a onclick="showSection('about')">About</a>
+            <a onclick="openTray()"><i class="fas fa-shopping-tray"></i> Tray <span id="cart-count" class="cart-count">0</span></a>
+        </div>
+    </nav>
+
+    <section id="home" class="active-section">
+        <div class="hero-content">
+            <h1>Experience the Perfect Brew</h1>
+            <p>Authentic beans, cozy atmosphere, and freshly baked delights.</p>
+            <br>
+            <button class="btn" onclick="showSection('menu')">View Menu</button>
+            <button class="btn" onclick="showSection('reservation')" style="background: transparent; border: 2px solid white; margin-left: 10px;">Book a Table</button>
+        </div>
+    </section>
+
+    <section id="menu">
+        <h2 style="text-align: center; margin-bottom: 1rem;">Our Offerings</h2>
+        
+        <div class="filter-container">
+            <button class="filter-btn active" onclick="filterMenu('all')">All</button>
+            <button class="filter-btn" onclick="filterMenu('coffee')">Coffee</button>
+            <button class="filter-btn" onclick="filterMenu('non-coffee')">Non-Coffee</button>
+        </div>
+
+        <div class="menu-grid" id="menu-grid">
+            </div>
+    </section>
+
+    <section id="reservation">
+        <h2 style="text-align: center; margin-bottom: 2rem;">Book a Table</h2>
+        <div class="form-container">
+            <form id="booking-form">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="res-name" required placeholder="Enter your name">
+                </div>
+                <div class="form-group">
+                    <label>Date & Time</label>
+                    <input type="datetime-local" id="res-date" required>
+                </div>
+                <div class="form-group">
+                    <label>Guests</label>
+                    <select id="res-guests">
+                        <option value="1">1 Person</option>
+                        <option value="2">2 People</option>
+                        <option value="4">3-4 People</option>
+                        <option value="5+">5+ People</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Special Requests</label>
+                    <textarea rows="3" placeholder="Allergies, quiet corner, etc."></textarea>
+                </div>
+                <button type="submit" class="btn" style="width: 100%;">Confirm Reservation</button>
+            </form>
+        </div>
+    </section>
+
+    <section id="location">
+        <h2 style="text-align: center; margin-bottom: 1rem;">Visit Us</h2>
+        <p style="text-align: center; margin-bottom: 2rem;">Use the map to find us. You can also save your own address for future reference.</p>
+        
+        <div id="map-container"></div>
+
+        <div class="form-container">
+            <h3>Save Your Profile Address</h3>
+            <p style="font-size: 0.9rem; color: #666;">*Shipping is unavailable, but we store this for local records.*</p>
+            <br>
+            <form id="address-form">
+                <div class="form-group">
+                    <label>Your Address</label>
+                    <input type="text" id="user-address" required placeholder="Street, City, Philippines">
+                </div>
+                <button type="submit" class="btn">Save Address</button>
+            </form>
+            
+            <div id="saved-address-display" class="saved-address-card">
+                <h4><i class="fas fa-check-circle"></i> Address Saved Locally:</h4>
+                <p id="display-text"></p>
+            </div>
+        </div>
+    </section>
+
+    <section id="about">
+        <div class="about-content">
+            <div>
+                <img src="https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=600" alt="Team" style="width: 100%; border-radius: 10px;">
+            </div>
+            <div>
+                <h2>Our Story</h2>
+                <p>Founded in 2023, Barako Haven aims to bring the finest local beans to your cup. We believe in sustainable sourcing and creating a community space where creativity flows as freely as our espresso.</p>
+                <br>
+                <h3>The Team</h3>
+                <p>Our baristas are certified coffee connoisseurs dedicated to the perfect pour. While we love technology, we believe AR can never replace the smell of freshly ground beans.</p>
+                <br>
+                <p><strong>Mission:</strong> To serve happiness, one cup at a time.</p>
+            </div>
+        </div>
+    </section>
+
+    <div id="tray-modal" class="modal">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h2>Your Tray</h2>
+                <button onclick="closeTray()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <div id="tray-items">
+                <p>Your tray is empty.</p>
+            </div>
+            <div style="margin-top: 1rem; border-top: 2px solid #eee; padding-top: 1rem;">
+                <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:1.2rem;">
+                    <span>Total:</span>
+                    <span id="tray-total">₱0</span>
+                </div>
+            </div>
+            <div class="checkout-disabled">
+                <i class="fas fa-exclamation-triangle"></i> Online Checkout is currently disabled. Please show this tray to our staff or place order at counter.
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // --- Data ---
+        const products = [
+            { id: 1, name: "Barako Espresso", type: "coffee", price: 120, img: "https://images.unsplash.com/photo-1510707577719-ae7c14805e3a?auto=format&fit=crop&w=400", desc: "Strong, bold local beans." },
+            { id: 2, name: "Spanish Latte", type: "coffee", price: 160, img: "https://images.unsplash.com/photo-1570968992193-d6ea0827f91d?auto=format&fit=crop&w=400", desc: "Sweet and creamy." },
+            { id: 3, name: "Caramel Macchiato", type: "coffee", price: 180, img: "https://images.unsplash.com/photo-1485808191679-5f8c7c835154?auto=format&fit=crop&w=400", desc: "Espresso with vanilla and caramel." },
+            { id: 4, name: "Matcha Latte", type: "non-coffee", price: 170, img: "https://images.unsplash.com/photo-1515823064-d6e0c91d70d7?auto=format&fit=crop&w=400", desc: "Premium Japanese green tea." },
+            { id: 5, name: "Strawberry Fizz", type: "non-coffee", price: 150, img: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=400", desc: "Refreshing soda with real fruit." },
+            { id: 6, name: "Croissant", type: "non-coffee", price: 95, img: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=400", desc: "Buttery and flaky pastry." }
+        ];
+
+        let cart = [];
+
+        // --- Navigation Logic ---
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('section').forEach(sec => {
+                sec.classList.remove('active-section');
+                // Fix layout issue where sections retain 'display: none'
+                sec.style.display = 'none';
+            });
+
+            // Show target
+            const target = document.getElementById(sectionId);
+            target.style.display = (sectionId === 'home') ? 'flex' : 'block';
+            setTimeout(() => target.classList.add('active-section'), 10);
+            
+            // Map resizing fix when tab is opened
+            if(sectionId === 'location') {
+                setTimeout(() => { map.invalidateSize(); }, 200);
+            }
+        }
+
+        // --- Menu Logic ---
+        function renderMenu(filter = 'all') {
+            const grid = document.getElementById('menu-grid');
+            grid.innerHTML = '';
+
+            const filtered = filter === 'all' ? products : products.filter(p => p.type === filter);
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <img src="${item.img}" class="card-img" alt="${item.name}">
+                    <div class="card-body">
+                        <h3>${item.name}</h3>
+                        <p class="ar-notice"><i class="fas fa-ban"></i> AR View Unavailable</p>
+                        <p>${item.desc}</p>
+                        <div class="price">₱${item.price}</div>
+                        <div style="display:flex; gap:10px;">
+                            <button onclick="addToTray(${item.id})" class="btn" style="flex:1;">Add to Tray</button>
+                            <button class="btn" style="background:#ccc; cursor:not-allowed;" disabled>AR View</button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            // Update filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if(btn.textContent.toLowerCase() === filter || (filter === 'non-coffee' && btn.textContent === 'Non-Coffee')) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        function filterMenu(type) {
+            renderMenu(type);
+        }
+
+        // --- Cart/Tray Logic ---
+        function addToTray(id) {
+            const product = products.find(p => p.id === id);
+            cart.push(product);
+            updateCartUI();
+            alert(`${product.name} added to tray!`);
+        }
+
+        function updateCartUI() {
+            document.getElementById('cart-count').textContent = cart.length;
+            
+            const list = document.getElementById('tray-items');
+            if(cart.length === 0) {
+                list.innerHTML = '<p>Your tray is empty.</p>';
+                document.getElementById('tray-total').textContent = '₱0';
+                return;
+            }
+
+            let html = '';
+            let total = 0;
+            cart.forEach((item, index) => {
+                total += item.price;
+                html += `
+                    <div class="tray-item">
+                        <span>${item.name}</span>
+                        <span>₱${item.price} <i class="fas fa-trash" style="color:red; cursor:pointer; margin-left:10px;" onclick="removeFromTray(${index})"></i></span>
+                    </div>
+                `;
+            });
+            list.innerHTML = html;
+            document.getElementById('tray-total').textContent = '₱' + total;
+        }
+
+        function removeFromTray(index) {
+            cart.splice(index, 1);
+            updateCartUI();
+        }
+
+        function openTray() {
+            document.getElementById('tray-modal').style.display = 'flex';
+        }
+
+        function closeTray() {
+            document.getElementById('tray-modal').style.display = 'none';
+        }
+
+        // --- Reservation Logic ---
+        document.getElementById('booking-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('res-name').value;
+            const date = document.getElementById('res-date').value;
+            
+            alert(`Thank you, ${name}! Table reserved for ${date}. \n(Note: No payment required online)`);
+            this.reset();
+        });
+
+        // --- Address Logic ---
+        document.getElementById('address-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const address = document.getElementById('user-address').value;
+            
+            // Save to local storage (simulation)
+            localStorage.setItem('userAddress', address);
+            
+            displayAddress(address);
+            alert('Address saved locally!');
+        });
+
+        function displayAddress(addr) {
+            const display = document.getElementById('saved-address-display');
+            document.getElementById('display-text').textContent = addr;
+            display.style.display = 'block';
+        }
+
+        // --- Map Logic (Leaflet) ---
+        // Default: Manila coordinates
+        const map = L.map('map-container').setView([14.5995, 120.9842], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        L.marker([14.5995, 120.9842]).addTo(map)
+            .bindPopup('Barako Haven<br>Main Branch')
+            .openPopup();
+
+        // --- Initialization ---
+        window.onload = function() {
+            renderMenu();
+            
+            // Check for saved address
+            const savedAddr = localStorage.getItem('userAddress');
+            if(savedAddr) {
+                displayAddress(savedAddr);
+                document.getElementById('user-address').value = savedAddr;
+            }
+        };
+
+        // Close modal if clicked outside
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('tray-modal')) {
+                closeTray();
+            }
+        }
+    </script>
+</body>
+</html>
