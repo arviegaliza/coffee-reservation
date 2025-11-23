@@ -3,19 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Barako Haven | Coffee & Reservations</title>
+    <title>Barako Haven | Coffee, Subscriptions & Ordering</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
         :root {
-            --primary: #4b3621; /* Dark Coffee */
-            --secondary: #a47e5b; /* Latte */
-            --accent: #d2b48c; /* Tan */
-            --light: #f4f1ea; /* Cream */
+            --primary: #4b3621;
+            --secondary: #a47e5b;
+            --accent: #d2b48c;
+            --light: #f4f1ea;
             --white: #ffffff;
             --text: #333333;
             --danger: #e74c3c;
+            --success: #27ae60;
+            --gcash: #007bff; /* GCash Blue */
+            --maya: #1e1e1e; /* Maya Black */
         }
 
         * {
@@ -64,27 +67,20 @@
             color: var(--accent);
         }
 
-        .cart-icon {
-            position: relative;
-            cursor: pointer;
-        }
-
         .cart-count {
-            position: absolute;
-            top: -8px;
-            right: -10px;
             background: var(--danger);
             color: white;
             border-radius: 50%;
             padding: 2px 6px;
             font-size: 0.7rem;
+            vertical-align: top;
         }
 
         /* --- Sections --- */
         section {
             padding: 4rem 5%;
             min-height: 80vh;
-            display: none; /* Hidden by default, toggled via JS */
+            display: none; 
         }
 
         section.active-section {
@@ -130,7 +126,7 @@
             background: var(--primary);
         }
 
-        /* --- Menu --- */
+        /* --- Menu & Subscription --- */
         .filter-container {
             text-align: center;
             margin-bottom: 2rem;
@@ -167,14 +163,11 @@
             flex-direction: column;
         }
 
-        .card:hover {
-            transform: translateY(-5px);
-        }
+        .card:hover { transform: translateY(-5px); }
 
         .card-img {
-            height: 220px;
+            height: 250px;
             width: 100%;
-            background-color: #f0f0f0;
             object-fit: cover;
         }
 
@@ -186,11 +179,6 @@
             justify-content: space-between;
         }
 
-        .card h3 {
-            margin-bottom: 0.5rem;
-            color: var(--primary);
-        }
-
         .price {
             color: var(--secondary);
             font-weight: bold;
@@ -198,17 +186,29 @@
             margin: 10px 0;
         }
 
-        .ar-notice {
-            font-size: 0.8rem;
-            color: #999;
-            background: #eee;
-            padding: 5px;
-            border-radius: 4px;
-            display: inline-block;
-            margin-bottom: 10px;
+        /* --- Subscription Styles --- */
+        .sub-card {
+            background: white;
+            border: 2px solid var(--secondary);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            max-width: 400px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+        .sub-badge {
+            position: absolute;
+            top: 20px;
+            right: -30px;
+            background: var(--danger);
+            color: white;
+            padding: 5px 40px;
+            transform: rotate(45deg);
         }
 
-        /* --- Reservation Form --- */
+        /* --- Forms --- */
         .form-container {
             max-width: 600px;
             margin: 0 auto;
@@ -218,10 +218,8 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
+        .form-group { margin-bottom: 1.5rem; }
+        
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
@@ -235,32 +233,7 @@
             border-radius: 5px;
         }
 
-        /* --- Location & Map --- */
-        #map-container {
-            height: 400px;
-            width: 100%;
-            border-radius: 10px;
-            margin-bottom: 2rem;
-            z-index: 1;
-        }
-
-        .saved-address-card {
-            background: white;
-            padding: 1rem;
-            border-left: 5px solid var(--secondary);
-            margin-top: 1rem;
-            display: none; /* Hidden until set */
-        }
-
-        /* --- About --- */
-        .about-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 3rem;
-            align-items: center;
-        }
-
-        /* --- Tray/Cart Modal --- */
+        /* --- Modals --- */
         .modal {
             display: none;
             position: fixed;
@@ -282,6 +255,17 @@
             max-width: 500px;
             max-height: 80vh;
             overflow-y: auto;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            border: none;
+            background: none;
         }
 
         .tray-item {
@@ -291,33 +275,85 @@
             border-bottom: 1px solid #eee;
         }
 
-        .checkout-disabled {
-            color: var(--danger);
-            font-size: 0.9rem;
-            margin-top: 1rem;
-            text-align: center;
-            border: 1px dashed var(--danger);
-            padding: 10px;
+        /* --- Payment Styles --- */
+        .payment-option {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s;
         }
 
-        @media (max-width: 768px) {
-            .about-content { grid-template-columns: 1fr; }
-            .hero-content h1 { font-size: 2.5rem; }
-            .nav-links { display: none; } /* Simplified mobile view */
+        .payment-option:hover, .payment-option.selected {
+            border-color: var(--secondary);
+            background: #fff8f0;
         }
+
+        .payment-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 5px;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .gcash-bg { background: var(--gcash); }
+        .maya-bg { background: var(--maya); }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--secondary);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        @media (max-width: 768px) {
+            .hero-content h1 { font-size: 2.5rem; }
+            .nav-links { 
+                display: none; 
+                position: absolute;
+                top: 60px;
+                left: 0;
+                width: 100%;
+                background: var(--primary);
+                flex-direction: column;
+                padding: 20px;
+            }
+            .nav-links.active-menu { display: flex; }
+            .nav-links a { margin: 10px 0; }
+            .mobile-menu-btn { display: block; color: white; font-size: 1.5rem; cursor: pointer; }
+        }
+        @media (min-width: 769px) { .mobile-menu-btn { display: none; } }
     </style>
 </head>
 <body>
 
     <nav>
         <div class="logo"><i class="fas fa-coffee"></i> BARAKO HAVEN</div>
-        <div class="nav-links">
+        <div class="mobile-menu-btn" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></div>
+        <div class="nav-links" id="nav-links">
             <a onclick="showSection('home')" class="active">Home</a>
             <a onclick="showSection('menu')">Menu</a>
+            <a onclick="showSection('subscription')">Subscription</a>
             <a onclick="showSection('reservation')">Reservation</a>
             <a onclick="showSection('location')">Location</a>
-            <a onclick="showSection('about')">About</a>
             <a onclick="openTray()"><i class="fas fa-shopping-tray"></i> Tray <span id="cart-count" class="cart-count">0</span></a>
+            <a onclick="openLogin()" id="login-link">Login</a>
+            <a id="user-display" style="display:none; color: var(--accent); font-weight:bold;"></a>
+            <a id="logout-btn" onclick="logout()" style="display:none; font-size: 0.8rem;">(Logout)</a>
         </div>
     </nav>
 
@@ -326,22 +362,35 @@
             <h1>Experience the Perfect Brew</h1>
             <p>Authentic beans, cozy atmosphere, and freshly baked delights.</p>
             <br>
-            <button class="btn" onclick="showSection('menu')">View Menu</button>
-            <button class="btn" onclick="showSection('reservation')" style="background: transparent; border: 2px solid white; margin-left: 10px;">Book a Table</button>
+            <button class="btn" onclick="showSection('menu')">Order Now</button>
+            <button class="btn" onclick="showSection('subscription')" style="background: transparent; border: 2px solid white; margin-left: 10px;">Join Club</button>
         </div>
     </section>
 
     <section id="menu">
-        <h2 style="text-align: center; margin-bottom: 1rem;">Our Offerings</h2>
-        
+        <h2 style="text-align: center; margin-bottom: 1rem;">Order Menu</h2>
         <div class="filter-container">
             <button class="filter-btn active" onclick="filterMenu('all')">All</button>
             <button class="filter-btn" onclick="filterMenu('coffee')">Coffee</button>
             <button class="filter-btn" onclick="filterMenu('non-coffee')">Non-Coffee</button>
         </div>
+        <div class="menu-grid" id="menu-grid"></div>
+    </section>
 
-        <div class="menu-grid" id="menu-grid">
-            </div>
+    <section id="subscription">
+        <h2 style="text-align: center; margin-bottom: 2rem;">Barako Club Subscription</h2>
+        <div class="sub-card">
+            <div class="sub-badge">BEST</div>
+            <h3>Daily Brew Pass</h3>
+            <p style="color:#666; margin: 10px 0;">Get your daily caffeine fix smoothly.</p>
+            <h1 style="color:var(--primary); font-size: 2.5rem;">₱999<span style="font-size:1rem; color:#666;">/mo</span></h1>
+            <ul style="text-align:left; margin: 20px 0; list-style: none;">
+                <li><i class="fas fa-check" style="color:var(--success)"></i> 1 Free Coffee Everyday</li>
+                <li><i class="fas fa-check" style="color:var(--success)"></i> 10% Off Pastries</li>
+                <li><i class="fas fa-check" style="color:var(--success)"></i> Free WiFi Access</li>
+            </ul>
+            <button class="btn" style="width:100%" onclick="initiateSubscription()">Subscribe with GCash/Maya</button>
+        </div>
     </section>
 
     <section id="reservation">
@@ -359,15 +408,10 @@
                 <div class="form-group">
                     <label>Guests</label>
                     <select id="res-guests">
-                        <option value="1">1 Person</option>
                         <option value="2">2 People</option>
-                        <option value="4">3-4 People</option>
-                        <option value="5+">5+ People</option>
+                        <option value="4">4 People</option>
+                        <option value="6">6+ People</option>
                     </select>
-                </div>
-                <div class="form-group">
-                    <label>Special Requests</label>
-                    <textarea rows="3" placeholder="Allergies, quiet corner, etc."></textarea>
                 </div>
                 <button type="submit" class="btn" style="width: 100%;">Confirm Reservation</button>
             </form>
@@ -376,160 +420,167 @@
 
     <section id="location">
         <h2 style="text-align: center; margin-bottom: 1rem;">Visit Us</h2>
-        <p style="text-align: center; margin-bottom: 2rem;">Use the map to find us. You can also save your own address for future reference.</p>
-        
-        <div id="map-container"></div>
-
+        <div id="map-container" style="height: 400px; width: 100%; border-radius: 10px; margin-bottom: 2rem;"></div>
         <div class="form-container">
-            <h3>Save Your Profile Address</h3>
-            <p style="font-size: 0.9rem; color: #666;">*Shipping is unavailable, but we store this for local records.*</p>
-            <br>
+            <h3>Delivery Address</h3>
             <form id="address-form">
                 <div class="form-group">
-                    <label>Your Address</label>
                     <input type="text" id="user-address" required placeholder="Street, City, Philippines">
                 </div>
                 <button type="submit" class="btn">Save Address</button>
             </form>
-            
-            <div id="saved-address-display" class="saved-address-card">
-                <h4><i class="fas fa-check-circle"></i> Address Saved Locally:</h4>
-                <p id="display-text"></p>
-            </div>
+            <p id="saved-address-msg" style="color: green; display:none; margin-top:10px;">Address Saved!</p>
         </div>
     </section>
 
-    <section id="about">
-        <div class="about-content">
-            <div>
-                <img src="https://images.unsplash.com/photo-1556740738-b6a63e27c4df?auto=format&fit=crop&w=800" alt="Team" style="width: 100%; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-            </div>
-            <div>
-                <h2>Our Story</h2>
-                <p>Founded in 2023, Barako Haven aims to bring the finest local beans to your cup. We believe in sustainable sourcing and creating a community space where creativity flows as freely as our espresso.</p>
-                <br>
-                <h3>The Team</h3>
-                <p>Our baristas are certified coffee connoisseurs dedicated to the perfect pour. While we love technology, we believe AR can never replace the smell of freshly ground beans.</p>
-                <br>
-                <p><strong>Mission:</strong> To serve happiness, one cup at a time.</p>
-            </div>
+    <div id="login-modal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <button class="close-btn" onclick="closeLogin()">&times;</button>
+            <h2 style="text-align:center; margin-bottom:1rem;">Welcome Back</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label>Email / Username</label>
+                    <input type="text" id="login-user" required placeholder="user@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" required placeholder="••••••">
+                </div>
+                <button type="submit" class="btn" style="width:100%;">Log In</button>
+                <p style="text-align:center; margin-top:10px; font-size:0.8rem; color:#666;">(No backend: Enter anything to login)</p>
+            </form>
         </div>
-    </section>
+    </div>
 
     <div id="tray-modal" class="modal">
         <div class="modal-content">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                <h2>Your Tray</h2>
-                <button onclick="closeTray()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
-            </div>
-            <div id="tray-items">
-                <p>Your tray is empty.</p>
-            </div>
-            <div style="margin-top: 1rem; border-top: 2px solid #eee; padding-top: 1rem;">
+            <button class="close-btn" onclick="closeTray()">&times;</button>
+            <h2>Your Tray</h2>
+            <div id="tray-items" style="margin: 20px 0;"></div>
+            <div style="border-top: 2px solid #eee; padding-top: 1rem;">
                 <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:1.2rem;">
                     <span>Total:</span>
                     <span id="tray-total">₱0</span>
                 </div>
+                <button id="checkout-btn" onclick="openPayment('order')" class="btn" style="width:100%; margin-top:15px; background:var(--success);">Proceed to Checkout</button>
             </div>
-            <div class="checkout-disabled">
-                <i class="fas fa-exclamation-triangle"></i> Online Checkout is currently disabled. Please show this tray to our staff or place order at counter.
+        </div>
+    </div>
+
+    <div id="payment-modal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closePayment()">&times;</button>
+            <h2 id="payment-title">Checkout</h2>
+            <p id="payment-amount" style="font-size:1.2rem; font-weight:bold; color:var(--primary); margin-bottom:20px;">Amount: ₱0</p>
+            
+            <div id="payment-selection">
+                <label style="display:block; margin-bottom:10px;">Select Payment Method:</label>
+                <div class="payment-option" onclick="selectPayment('gcash')">
+                    <div class="payment-logo gcash-bg">G</div>
+                    <span>GCash</span>
+                </div>
+                <div class="payment-option" onclick="selectPayment('maya')">
+                    <div class="payment-logo maya-bg">M</div>
+                    <span>PayMaya</span>
+                </div>
+            </div>
+
+            <div id="payment-form-inputs" style="display:none; margin-top:20px;">
+                <h4 id="wallet-name" style="margin-bottom:10px;">Login to Wallet</h4>
+                <div class="form-group">
+                    <input type="number" placeholder="Mobile Number (09XXXXXXXXX)" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" placeholder="MPIN / Password" required>
+                </div>
+                <button class="btn" style="width:100%;" onclick="processPayment()">Pay Now</button>
+            </div>
+
+            <div id="payment-spinner" class="spinner"></div>
+            
+            <div id="payment-success" style="display:none; text-align:center; color:var(--success);">
+                <i class="fas fa-check-circle" style="font-size:3rem; margin-bottom:10px;"></i>
+                <h3>Payment Successful!</h3>
+                <p>Order Reference: <span id="ref-num">#000</span></p>
             </div>
         </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // --- UPDATED MENU DATA WITH REAL IMAGES ---
+        // --- DATA ---
         const products = [
-            { 
-                id: 1, 
-                name: "Barako Espresso", 
-                type: "coffee", 
-                price: 120, 
-                img: "https://images.unsplash.com/photo-1510707577719-ae7c14805e3a?auto=format&fit=crop&w=600&q=80", 
-                desc: "Strong, bold local beans served black." 
-            },
-            { 
-                id: 2, 
-                name: "Spanish Latte", 
-                type: "coffee", 
-                price: 160, 
-                img: "https://www.bing.com/images/search?view=detailV2&ccid=MjWl8dH7&id=8754A230FA72DAB13CB7C2528BC82DA9D29C8BDC&thid=OIP.MjWl8dH7tpFV1Iv5kzz4VwHaGE&mediaurl=https%3A%2F%2Fcoffeevibe.org%2Fwp-content%2Fuploads%2F2021%2F06%2FThe-Spanish-Lathe-Recipe-main.png&exph=640&expw=780&q=spanish+latte&FORM=IRPRST&ck=D3F755B82F805972B3387969BF1CEE05&selectedIndex=1&itb=0&cw=1145&ch=535&ajaxhist=0&ajaxserp=0", 
-                desc: "Sweet and creamy with condensed milk." 
-            },
-            { 
-                id: 3, 
-                name: "Caramel Macchiato", 
-                type: "coffee", 
-                price: 180, 
-                img: "https://images.unsplash.com/photo-1485808191679-5f8c7c835154?auto=format&fit=crop&w=600&q=80", 
-                desc: "Espresso with vanilla and caramel drizzle." 
-            },
-            { 
-                id: 4, 
-                name: "Iced Americano", 
-                type: "coffee", 
-                price: 130, 
-                img: "https://images.unsplash.com/photo-1517701604599-bb29b5dd7359?auto=format&fit=crop&w=600&q=80", 
-                desc: "Chilled espresso over ice." 
-            },
-            { 
-                id: 5, 
-                name: "Matcha Latte", 
-                type: "non-coffee", 
-                price: 170, 
-                img: "https://images.unsplash.com/photo-1515823064-d6e0c91d70d7?auto=format&fit=crop&w=600&q=80", 
-                desc: "Premium Japanese green tea with milk." 
-            },
-            { 
-                id: 6, 
-                name: "Strawberry Fizz", 
-                type: "non-coffee", 
-                price: 150, 
-                img: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80", 
-                desc: "Refreshing soda with real fruit." 
-            },
-            { 
-                id: 7, 
-                name: "Classic Croissant", 
-                type: "non-coffee", 
-                price: 95, 
-                img: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=600&q=80", 
-                desc: "Buttery and flaky golden pastry." 
-            },
-            { 
-                id: 8, 
-                name: "Blueberry Cheesecake", 
-                type: "non-coffee", 
-                price: 195, 
-                img: "https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&w=600&q=80", 
-                desc: "Rich cheese filling with berry topping." 
-            }
+            { id: 1, name: "Barako Espresso", type: "coffee", price: 120, img: "https://images.unsplash.com/photo-1510707577719-ae7c14805e3a?auto=format&fit=crop&w=600&q=80", desc: "Strong, bold local beans served black." },
+            { id: 2, name: "Spanish Latte", type: "coffee", price: 160, img: "https://images.unsplash.com/photo-1585373683920-671438c82b32?auto=format&fit=crop&w=600&q=80", desc: "Sweet and creamy with condensed milk." },
+            { id: 3, name: "Caramel Macchiato", type: "coffee", price: 180, img: "https://images.unsplash.com/photo-1485808191679-5f8c7c835154?auto=format&fit=crop&w=600&q=80", desc: "Espresso with vanilla and caramel drizzle." },
+            { id: 4, name: "Iced Americano", type: "coffee", price: 130, img: "https://images.unsplash.com/photo-1517701604599-bb29b5dd7359?auto=format&fit=crop&w=600&q=80", desc: "Chilled espresso over ice." },
+            { id: 5, name: "Matcha Latte", type: "non-coffee", price: 170, img: "https://images.unsplash.com/photo-1515823064-d6e0c91d70d7?auto=format&fit=crop&w=600&q=80", desc: "Premium Japanese green tea with milk." },
+            { id: 6, name: "Strawberry Fizz", type: "non-coffee", price: 150, img: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80", desc: "Refreshing soda with real fruit." },
+            { id: 7, name: "Classic Croissant", type: "non-coffee", price: 95, img: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=600&q=80", desc: "Buttery and flaky golden pastry." },
+            { id: 8, name: "Blueberry Cheesecake", type: "non-coffee", price: 195, img: "https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&w=600&q=80", desc: "Rich cheese filling with berry topping." }
         ];
 
         let cart = [];
+        let currentPaymentType = ''; // 'order' or 'sub'
+        let currentTotal = 0;
 
-        // --- Navigation Logic ---
+        // --- NAVIGATION ---
         function showSection(sectionId) {
             document.querySelectorAll('section').forEach(sec => {
                 sec.classList.remove('active-section');
                 sec.style.display = 'none';
             });
-
             const target = document.getElementById(sectionId);
             target.style.display = (sectionId === 'home') ? 'flex' : 'block';
             setTimeout(() => target.classList.add('active-section'), 10);
             
-            if(sectionId === 'location') {
-                setTimeout(() => { map.invalidateSize(); }, 200);
+            if(sectionId === 'location') setTimeout(() => map.invalidateSize(), 200);
+            
+            // Close mobile menu if open
+            document.getElementById('nav-links').classList.remove('active-menu');
+        }
+
+        function toggleMobileMenu() {
+            document.getElementById('nav-links').classList.toggle('active-menu');
+        }
+
+        // --- LOGIN SYSTEM (Client Side) ---
+        function checkLogin() {
+            const user = localStorage.getItem('barakoUser');
+            if (user) {
+                document.getElementById('login-link').style.display = 'none';
+                document.getElementById('user-display').style.display = 'inline';
+                document.getElementById('user-display').textContent = 'Hi, ' + user;
+                document.getElementById('logout-btn').style.display = 'inline';
+            } else {
+                document.getElementById('login-link').style.display = 'inline';
+                document.getElementById('user-display').style.display = 'none';
+                document.getElementById('logout-btn').style.display = 'none';
             }
         }
 
-        // --- Menu Logic ---
+        function openLogin() { document.getElementById('login-modal').style.display = 'flex'; }
+        function closeLogin() { document.getElementById('login-modal').style.display = 'none'; }
+        
+        function logout() {
+            localStorage.removeItem('barakoUser');
+            checkLogin();
+            alert('Logged out successfully.');
+        }
+
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const user = document.getElementById('login-user').value.split('@')[0]; // Simple name extraction
+            localStorage.setItem('barakoUser', user);
+            closeLogin();
+            checkLogin();
+            alert('Login Successful!');
+        });
+
+        // --- MENU ---
         function renderMenu(filter = 'all') {
             const grid = document.getElementById('menu-grid');
             grid.innerHTML = '';
-
             const filtered = filter === 'all' ? products : products.filter(p => p.type === filter);
 
             filtered.forEach(item => {
@@ -540,48 +591,40 @@
                     <div class="card-body">
                         <div>
                             <h3>${item.name}</h3>
-                            <p class="ar-notice"><i class="fas fa-ban"></i> AR View Unavailable</p>
                             <p>${item.desc}</p>
                         </div>
                         <div>
                             <div class="price">₱${item.price}</div>
-                            <div style="display:flex; gap:10px;">
-                                <button onclick="addToTray(${item.id})" class="btn" style="flex:1;">Add to Tray</button>
-                                <button class="btn" style="background:#ccc; cursor:not-allowed;" disabled>AR View</button>
-                            </div>
+                            <button onclick="addToTray(${item.id})" class="btn" style="width:100%;">Add to Tray</button>
                         </div>
                     </div>
                 `;
                 grid.appendChild(card);
             });
-
+            
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.classList.remove('active');
-                if(btn.textContent.toLowerCase() === filter || (filter === 'non-coffee' && btn.textContent === 'Non-Coffee')) {
-                    btn.classList.add('active');
-                }
+                if(btn.textContent.toLowerCase().includes(filter)) btn.classList.add('active');
             });
         }
+        function filterMenu(type) { renderMenu(type); }
 
-        function filterMenu(type) {
-            renderMenu(type);
-        }
-
-        // --- Cart/Tray Logic ---
+        // --- TRAY ---
         function addToTray(id) {
             const product = products.find(p => p.id === id);
             cart.push(product);
             updateCartUI();
-            alert(`${product.name} added to tray!`);
+            // Optional: alert removed for smoother UX, visual update is enough
         }
 
         function updateCartUI() {
             document.getElementById('cart-count').textContent = cart.length;
-            
             const list = document.getElementById('tray-items');
+            
             if(cart.length === 0) {
                 list.innerHTML = '<p>Your tray is empty.</p>';
                 document.getElementById('tray-total').textContent = '₱0';
+                document.getElementById('checkout-btn').style.display = 'none';
                 return;
             }
 
@@ -592,12 +635,13 @@
                 html += `
                     <div class="tray-item">
                         <span>${item.name}</span>
-                        <span>₱${item.price} <i class="fas fa-trash" style="color:red; cursor:pointer; margin-left:10px;" onclick="removeFromTray(${index})"></i></span>
+                        <span>₱${item.price} <i class="fas fa-trash" style="color:var(--danger); cursor:pointer; margin-left:10px;" onclick="removeFromTray(${index})"></i></span>
                     </div>
                 `;
             });
             list.innerHTML = html;
             document.getElementById('tray-total').textContent = '₱' + total;
+            document.getElementById('checkout-btn').style.display = 'block';
         }
 
         function removeFromTray(index) {
@@ -605,63 +649,108 @@
             updateCartUI();
         }
 
-        function openTray() {
-            document.getElementById('tray-modal').style.display = 'flex';
+        function openTray() { document.getElementById('tray-modal').style.display = 'flex'; }
+        function closeTray() { document.getElementById('tray-modal').style.display = 'none'; }
+
+        // --- PAYMENT & SUBSCRIPTION ---
+        function initiateSubscription() {
+            if(!localStorage.getItem('barakoUser')) {
+                alert('Please Login first to subscribe!');
+                openLogin();
+                return;
+            }
+            openPayment('sub');
         }
 
-        function closeTray() {
-            document.getElementById('tray-modal').style.display = 'none';
-        }
-
-        // --- Reservation Logic ---
-        document.getElementById('booking-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const name = document.getElementById('res-name').value;
-            const date = document.getElementById('res-date').value;
+        function openPayment(type) {
+            currentPaymentType = type;
+            const modal = document.getElementById('payment-modal');
+            const amountDisplay = document.getElementById('payment-amount');
             
-            alert(`Thank you, ${name}! Table reserved for ${date}. \n(Note: No payment required online)`);
-            this.reset();
-        });
+            // Reset UI
+            document.getElementById('payment-selection').style.display = 'block';
+            document.getElementById('payment-form-inputs').style.display = 'none';
+            document.getElementById('payment-success').style.display = 'none';
+            document.getElementById('payment-spinner').style.display = 'none';
+            document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
 
-        // --- Address Logic ---
-        document.getElementById('address-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const address = document.getElementById('user-address').value;
-            localStorage.setItem('userAddress', address);
-            displayAddress(address);
-            alert('Address saved locally!');
-        });
-
-        function displayAddress(addr) {
-            const display = document.getElementById('saved-address-display');
-            document.getElementById('display-text').textContent = addr;
-            display.style.display = 'block';
+            if (type === 'order') {
+                // Calculate total from cart
+                let total = cart.reduce((sum, item) => sum + item.price, 0);
+                currentTotal = total;
+                document.getElementById('payment-title').textContent = 'Order Checkout';
+            } else {
+                // Subscription
+                currentTotal = 999;
+                document.getElementById('payment-title').textContent = 'Subscribe to Club';
+            }
+            
+            amountDisplay.textContent = 'Total Amount: ₱' + currentTotal;
+            closeTray(); // Close tray if open
+            modal.style.display = 'flex';
         }
 
-        // --- Map Logic (Leaflet) ---
-        const map = L.map('map-container').setView([14.5995, 120.9842], 13);
+        function closePayment() { document.getElementById('payment-modal').style.display = 'none'; }
 
+        function selectPayment(provider) {
+            document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+            
+            document.getElementById('payment-selection').style.display = 'none';
+            document.getElementById('payment-form-inputs').style.display = 'block';
+            
+            const walletName = provider === 'gcash' ? 'GCash' : 'PayMaya';
+            document.getElementById('wallet-name').textContent = `Log in to ${walletName}`;
+        }
+
+        function processPayment() {
+            // Simulate processing
+            document.getElementById('payment-form-inputs').style.display = 'none';
+            document.getElementById('payment-spinner').style.display = 'block';
+            document.getElementById('payment-amount').style.display = 'none';
+
+            setTimeout(() => {
+                document.getElementById('payment-spinner').style.display = 'none';
+                document.getElementById('payment-success').style.display = 'block';
+                document.getElementById('ref-num').textContent = '#' + Math.floor(Math.random() * 1000000);
+                
+                // Clear cart if it was an order
+                if(currentPaymentType === 'order') {
+                    cart = [];
+                    updateCartUI();
+                } else {
+                    alert('Welcome to the Barako Club!');
+                }
+            }, 2000); // 2 second delay simulation
+        }
+
+        // --- MAP & ADDRESS ---
+        const map = L.map('map-container').setView([14.5995, 120.9842], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
+        L.marker([14.5995, 120.9842]).addTo(map).bindPopup('Barako Haven HQ').openPopup();
 
-        L.marker([14.5995, 120.9842]).addTo(map)
-            .bindPopup('Barako Haven<br>Main Branch')
-            .openPopup();
+        document.getElementById('address-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const addr = document.getElementById('user-address').value;
+            localStorage.setItem('userAddress', addr);
+            document.getElementById('saved-address-msg').style.display = 'block';
+            setTimeout(() => document.getElementById('saved-address-msg').style.display = 'none', 3000);
+        });
 
-        // --- Initialization ---
+        // --- INITIALIZATION ---
         window.onload = function() {
             renderMenu();
+            checkLogin();
             const savedAddr = localStorage.getItem('userAddress');
-            if(savedAddr) {
-                displayAddress(savedAddr);
-                document.getElementById('user-address').value = savedAddr;
-            }
+            if(savedAddr) document.getElementById('user-address').value = savedAddr;
         };
-
+        
+        // Close modals on outside click
         window.onclick = function(event) {
-            if (event.target == document.getElementById('tray-modal')) {
-                closeTray();
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
             }
         }
     </script>
